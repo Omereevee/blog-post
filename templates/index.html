@@ -42,16 +42,14 @@
                             <h3 class="post.html-subtitle">{{ post["subtitle"] }}</h3>
                         </a>
                         <p class="post.html-meta">
-                            post.html by
-                            <a href="#!">Start Bootstrap</a>
-                            on September 24, 2023
+                            posted on {{ post["date"] }}
                         </p>
                     </div>
                     <!-- Divider-->
                     <hr class="my-4" />
                     {% endfor %}
                     <!-- Pager-->
-                    <div class="d-flex justify-content-end mb-4"><a class="btn btn-primary text-uppercase" href="#!">Older post.htmls →</a></div>
+                    <div class="d-flex justify-content-end mb-4"><a class="btn btn-primary text-uppercase" href="{{url_for('create_new_post')}}">Create New Post</a></div>
                 </div>
             </div>
         </div>
