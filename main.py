@@ -71,7 +71,7 @@ def create_new_post():
         new_blog = Blog(title=title,subtitle=subtitle,author=author,img_url=img_url,body=body,date=date)
         db.session.add(new_blog)
         db.session.commit()
-        return redirect("index.html")
+        return redirect(url_for('home'))
 
     return render_template('new-post.html', form=form)
 
@@ -100,6 +100,15 @@ def edit_post(id):
         db.session.commit()
         return redirect(url_for('post',id=id))
     return render_template("new-post.html", form=edit_form, is_edit=True)
+
+@app.route('/deleted/<int:id>',methods=["GET","POST"])
+def delete(id):
+    with app.app_context():
+        blog_to_delete = db.get_or_404(Blog, id)
+        db.session.delete(blog_to_delete)
+        db.session.commit()
+    return render_template("index.html")
+
 
 @app.route('/contact',methods=["GET","POST"])
 def contact():
