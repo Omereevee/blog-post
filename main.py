@@ -1,5 +1,6 @@
 import datetime
 
+from flask import redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from sqlalchemy.orm import Mapped, mapped_column
@@ -31,12 +32,13 @@ class BlogForm(FlaskForm):
     body = CKEditorField("Blog Content", validators=[DataRequired()])
     submit = SubmitField('Submit')
 
+
 class Blog(db.Model):
     id:Mapped[int] = mapped_column(Integer, primary_key=True)
     title:Mapped[str] = mapped_column(String(250),unique=True, nullable=False)
     subtitle:Mapped[str] = mapped_column(String(250),nullable=False)
     author:Mapped[str] = mapped_column(String(250),nullable=False)
-    image_url:Mapped[str] = mapped_column(String(250),nullable=False)
+    img_url:Mapped[str] = mapped_column(String(250),nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)
     date:Mapped[str] = mapped_column(String(250),nullable=False)
 
@@ -62,16 +64,42 @@ def create_new_post():
         title = form.title.data
         subtitle = form.subtitle.data
         author = form.author.data
-        image_url = form.img_url.data
+        img_url = form.img_url.data
         body = form.body.data
         date = datetime.datetime.now().strftime("%B %d %Y")
 
-        new_blog = Blog(title=title,subtitle=subtitle,author=author,image_url=image_url,body=body,date=date)
+        new_blog = Blog(title=title,subtitle=subtitle,author=author,img_url=img_url,body=body,date=date)
         db.session.add(new_blog)
         db.session.commit()
+        return redirect("index.html")
 
     return render_template('new-post.html', form=form)
 
+
+@app.route("/edit-post/<int:id>", methods=["GET", "POST"],strict_slashes=False)
+def edit_post(id):
+    print("edit post")
+    post = db.get_or_404(Blog, id)
+
+    # Create the form and pre-fill every field manually
+    edit_form = BlogForm(
+        title=post.title,
+        subtitle=post.subtitle,
+        author=post.author,
+        img_url=post.img_url,
+        body=post.body
+    )
+
+    if edit_form.validate_on_submit():
+        post.title = edit_form.title.data
+        post.subtitle = edit_form.subtitle.data
+        post.author = edit_form.author.data
+        post.img_url = edit_form.img_url.data
+        post.body = edit_form.body.data
+
+        db.session.commit()
+        return redirect(url_for('post',id=id))
+    return render_template("new-post.html", form=edit_form, is_edit=True)
 
 @app.route('/contact',methods=["GET","POST"])
 def contact():
@@ -98,8 +126,16 @@ def contact():
 
 @app.route('/post/<int:id>')
 def post(id):
+    form = BlogForm()
+    title = form.title.data
+    subtitle = form.subtitle.data
+    author = form.author.data
+    img_url = form.img_url.data
+    body = form.body.data
+    date = datetime.datetime.now().strftime("%B %d %Y")
     blog = db.get_or_404(Blog, id)
-    return render_template('post.html', id=id, blog=blog)
+    # pay attention to this CHATGPT
+    return render_template('post.html', id=id, blog=blog, title=title,subtitle=subtitle,author=author,img_url=img_url,body=body,date=date)
 
 
 if __name__ == "__main__":
